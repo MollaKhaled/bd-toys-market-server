@@ -2,7 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const app = express();
 const port = process.env.PORT || 3000;
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 require('dotenv').config()
 // middleware
 app.use(cors());
@@ -27,10 +27,29 @@ async function run() {
     client.connect();
 
     const toysCollection = client.db('bd-toys-market').collection('toys');
+    const bookingCollection = client.db('bd-toys-market').collection('bookings');
 
   app.get('/toys', async(req, res)=>{
     const cursor = toysCollection.find();
     const result = await cursor.toArray();
+    res.send(result);
+  })
+
+  app.get('/toys/:id', async(req, res) => {
+    const id = req.params.id;
+    const query = {_id: new ObjectId(id)}
+    const options = {
+      projection: {
+        sellerName:1, toyName:1, price:1, details:1, picture:1,rating:1
+      }
+    }
+    const result = await toysCollection.findOne(query, options);
+    res.send(result);
+  })
+  // toys Booking
+  app.post('/bookings', async (req, res) => {
+    const booking = req.body;
+    const result = await bookingCollection.insertOne(booking);
     res.send(result);
   })
 
