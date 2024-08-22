@@ -32,12 +32,16 @@ async function run() {
   app.get('/toys', async(req, res)=>{
     const page = parseInt(req.query.page) || 0;
     const limit = parseInt(req.query.limit) || 10;
-    const search = req.query.search;
+    const search = req.query.search ? String(req.query.search).trim() : '';
     console.log(search);
     const skip = page * limit;
-    const query = {toyName:{$regex:search, $options: 'i'}};
+    const query = search
+    ? { toyName: { $regex: new RegExp(search, 'i') } } 
+    : {};
     const options = {
-         sort:{price: 1 }
+         sort:{price: 1 },
+         skip: skip,
+         limit: limit,
     }
     // const cursor = toysCollection.find();
     const result = await  toysCollection.find(query, options).skip(skip).limit(limit).toArray();
